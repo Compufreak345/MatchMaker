@@ -14,6 +14,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Data.Sqlite;
 using System.IO;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using MatchMaker.Services;
+using MatchMaker.Configuration;
 
 namespace MatchMaker
 {
@@ -38,6 +41,7 @@ namespace MatchMaker
                     builder.DataSource));
             connectionString = builder.ToString();
 
+
             services.AddDbContext<MmDbContext>(options =>
                 options.UseSqlite(
                     connectionString));
@@ -51,7 +55,13 @@ namespace MatchMaker
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 30;
                 })
-                .AddEntityFrameworkStores<MmDbContext>();
+                .AddEntityFrameworkStores<MmDbContext>()
+                ;
+
+
+            services.AddTransient<IEmailSender, MmEmailSender>();
+            services.Configure<Email>(this.Configuration.GetSection("Email"));
+
             services.AddRazorPages();
         }
 

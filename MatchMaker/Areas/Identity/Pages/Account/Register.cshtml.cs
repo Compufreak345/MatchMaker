@@ -47,19 +47,24 @@ namespace MatchMaker.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
+            [StringLength(100, ErrorMessage = "Geht's noch länger?!?")]
+            [Display(Name = "Nickname - merk dir den lieber, mit dem loggst du dich ein.")]
+            public string Name { get; set; }
+
+            [Required]
             [EmailAddress]
-            [Display(Name = "Email")]
+            [Display(Name = "Email - wenn du hier Quatsch reinprügelst ist das kein Ding, aber dann nerv mich später nicht wenn du dein Passwort vergisst.")]
             public string Email { get; set; }
 
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [StringLength(100, ErrorMessage = "Na komm, die {2} Zeichen schaffste noch, hm?", MinimumLength = 3)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Passwort")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [Display(Name = "Nochmal nochmal!")]
+            [Compare("Password", ErrorMessage = "Zweimal das selbe Passwort wäre echt nice.")]
             public string ConfirmPassword { get; set; }
         }
 
@@ -75,7 +80,7 @@ namespace MatchMaker.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new User { UserName = Input.Email, Email = Input.Email };
+                var user = new User { UserName = Input.Name, Email = Input.Email };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
