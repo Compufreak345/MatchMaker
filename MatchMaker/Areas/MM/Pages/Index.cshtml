@@ -1,4 +1,22 @@
 ﻿@page
 @model MatchMaker.Areas.MM.Pages.IndexModel
 @{
+    ViewData["Title"] = "***Rankings***";
 }
+
+<h1>@ViewData["Title"]</h1>
+<div>
+    <table>
+        <tr><th>Name</th><th>Ranking</th><th>Votes received</th><th>Votes given</th><th>Trusted</th></tr>
+        @foreach(var user in this.Model.Users)
+        {
+    <tr>
+        <td>@user.Name</td>
+        <td>@user.Ranking</td>
+        <td>@user.VotesReceived</td>
+        <td>@user.VotesGiven</td>
+        <td>@user.IsTrusted</td>
+    </tr>
+        }
+    </table>
+</div>

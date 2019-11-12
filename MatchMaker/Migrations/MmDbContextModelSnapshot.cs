@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MatchMaker.Migrations
 {
     [DbContext(typeof(MmDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    partial class MmDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
