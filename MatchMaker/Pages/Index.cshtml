@@ -1,10 +1,90 @@
 ﻿@page
-@model IndexModel
+@model MatchMaker.Areas.MM.Pages.IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "***Rankings***";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h1>@ViewData["Title"]</h1>
+<div>
+    Ein Ranking von 0 entspricht einem nicht vergebenen Ranking.
+    <table>
+        <tr><th>Name</th><th>Trusted</th><th>Votes received</th><th>Votes given</th><th>Ranking</th><th>Status</th></tr>
+        @foreach (var user in this.Model.Users)
+        {
+            <tr id="userRow_@user.Id">
+                <td>@user.Name</td>
+                <td class="isTrusted">@user.IsTrusted</td>
+                <td class="votesReceived">@user.VotesReceived</td>
+                <td class="votesGiven">@user.VotesGiven</td>
+                <td><input type="text" lastval="@user.PersonalRanking" class="userRanking" user-id="@user.Id" value="@user.PersonalRanking" /></td>
+                <td class="status">Gespeichert</td>
+            </tr>
+        }
+    </table>
 </div>
+
+@section Scripts {
+    <script type="text/javascript">
+        var pendingUpdates = {};
+        $(document).ready(function () {
+            var currentUserRow = $($("#userRow_@this.Model.CurrentUser.Id"));
+            currentUserRow.find('input').attr("disabled", true);
+            $(".userRanking").change(function (eventData) {
+                var el = $(eventData.target);
+                var userId = el.attr("user-id");
+                clearTimeout(pendingUpdates[userId]);
+                pendingUpdates[userId] = setTimeout(function() {
+                    var el = $(eventData.target);
+                    var userId = el.attr("user-id");
+                    var ranking = $(el).val();
+                    var lastRanking = $(el).attr("lastval");
+                    var userRow = $($("#userRow_" + userId));
+
+                    if (lastRanking != ranking && ranking != "") {
+                        if (ranking < 0 || ranking > 10 || !isInteger(ranking)) {
+                            userRow.find(".status").text("Ranking muss ganzzahlig zwischen 0 und 10 sein.");
+                        } else {
+                            userRow.find(".status").text("Speichere...");
+                             currentUserRow.find(".status").text("Speichere...");
+                            $.ajax({
+                                type: 'post',
+                                data: {
+                                    userId: userId,
+                                    ranking: ranking
+                                },
+                                headers: {
+                                    RequestVerificationToken:
+                                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                                },
+                                success: function (response) {
+                                    userRow.find(".isTrusted").text(response.votedUser.isTrusted);
+                                    userRow.find(".votesReceived").text(response.votedUser.votesReceived);
+                                    userRow.find(".votesGiven").text(response.votedUser.votesGiven);
+                                    userRow.find(".personalRanking").val(response.votedUser.personalRanking);
+                                    userRow.find(".status").text("Gespeichert");
+                                    userRow.find(".personalRanking").attr("lastval", response.votedUser.personalRanking);
+
+                                    currentUserRow.find(".isTrusted").text(response.votingUser.isTrusted);
+                                    currentUserRow.find(".votesReceived").text(response.votingUser.votesReceived);
+                                    currentUserRow.find(".votesGiven").text(response.votingUser.votesGiven);
+                                    currentUserRow.find(".personalRanking").val(response.votingUser.personalRanking);
+                                    currentUserRow.find(".status").text("Gespeichert");
+                                },
+                                error: function (data) {
+                                    userRow.find(".status").text("Fehler beim Speichern.");
+
+                                }
+                            });
+                        }
+                    }
+                  }, 50);
+
+            });
+        });
+
+        // https://stackoverflow.com/questions/10270648/determine-if-javascript-value-is-an-integer
+        function isInteger(ranking) {
+            return Math.floor(ranking) == ranking && $.isNumeric(ranking);
+        }
+    </script>
+}

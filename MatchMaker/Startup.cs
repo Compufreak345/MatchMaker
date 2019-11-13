@@ -17,6 +17,8 @@ using System.IO;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using MatchMaker.Services;
 using MatchMaker.Configuration;
+using Microsoft.AspNetCore.Http;
+using MatchMaker.Middleware;
 
 namespace MatchMaker
 {
@@ -57,8 +59,9 @@ namespace MatchMaker
                 })
                 .AddEntityFrameworkStores<MmDbContext>()
                 ;
+            //services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-
+            services.AddScoped<UserProvider>();
             services.AddTransient<IEmailSender, MmEmailSender>();
             services.Configure<Email>(this.Configuration.GetSection("Email"));
 
@@ -88,6 +91,8 @@ namespace MatchMaker
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseMiddleware<UserProviderMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {

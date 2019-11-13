@@ -21,6 +21,14 @@
 
 
   <ItemGroup>
+    <Content Update="Pages\Index.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+
+  <ItemGroup>
     <None Update="database\TextFile.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
