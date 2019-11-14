@@ -19,6 +19,7 @@ using MatchMaker.Services;
 using MatchMaker.Configuration;
 using Microsoft.AspNetCore.Http;
 using MatchMaker.Middleware;
+using MatchMaker.Repositories;
 
 namespace MatchMaker
 {
@@ -61,10 +62,13 @@ namespace MatchMaker
                 ;
             //services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+            services.AddScoped<UserRepository>();
+            services.AddScoped<MatchCreator>();
             services.AddScoped<UserProvider>();
             services.AddTransient<IEmailSender, MmEmailSender>();
             services.Configure<Email>(this.Configuration.GetSection("Email"));
 
+            
             services.AddRazorPages();
         }
 
@@ -92,11 +96,12 @@ namespace MatchMaker
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseMiddleware<UserProviderMiddleware>();
+            app.UseMiddleware<UserProviderMiddleware>(); 
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
+                endpoints.MapControllers();
             });
         }
     }

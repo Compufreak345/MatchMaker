@@ -5,14 +5,20 @@
 }
 
 <h1>@ViewData["Title"]</h1>
-<div>
+<div class="row">
     Ein Ranking von 0 entspricht einem nicht vergebenen Ranking.
-    <table>
+    <table id="players">
         <tr><th>Name</th><th>Trusted</th><th>Votes received</th><th>Votes given</th><th>Ranking</th><th>Status</th></tr>
         @foreach (var user in this.Model.Users)
         {
             <tr id="userRow_@user.Id">
-                <td>@user.Name</td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input selectBox" onchange="selectChanged()" id="userCheckbox_@user.Id" type="checkbox" user-id="@user.Id" value="">
+                        <label class="form-check-label">
+                            @user.Name
+                        </label>
+                    </div>
                 <td class="isTrusted">@user.IsTrusted</td>
                 <td class="votesReceived">@user.VotesReceived</td>
                 <td class="votesGiven">@user.VotesGiven</td>
@@ -22,13 +28,24 @@
         }
     </table>
 </div>
+<div class="row">
+    <div class="col-md-4">
+        <input id="deviation" type="number" min="0.05" max="1" step="0.05" value="0.2" class="form-control" /><label for="deviation">Erlaubte Abweichung</label>
+    </div>
+    <div class="col-md-8">
+        <button onclick="makeMatch()" id="makeMatchButton" class="btn btn-primary" disabled>Make Match</button>
+    </div>
+</div>
+<div>
+    <pre id="teamsContainer"></pre>
+</div>
 
 @section Scripts {
     <script type="text/javascript">
         var pendingUpdates = {};
         $(document).ready(function () {
             var currentUserRow = $($("#userRow_@this.Model.CurrentUser.Id"));
-            currentUserRow.find('input').attr("disabled", true);
+            currentUserRow.find('input.userRanking').attr("disabled", true);
             $(".userRanking").change(function (eventData) {
                 var el = $(eventData.target);
                 var userId = el.attr("user-id");
@@ -48,6 +65,7 @@
                              currentUserRow.find(".status").text("Speichere...");
                             $.ajax({
                                 type: 'post',
+                                url: '/api/Voting',
                                 data: {
                                     userId: userId,
                                     ranking: ranking
@@ -81,10 +99,78 @@
 
             });
         });
+        // https://stackoverflow.com/questions/18296850/click-table-rows-to-select-checkbox-using-jquery
+        $('#players tr').click(function (event) {
+            if (event.target.type !== 'checkbox' && event.target.type != "text") {
+              $(':checkbox', this).trigger('click');
+            }
+          });
+        
+
+        function selectChanged() {
+            var selected = $("input.selectBox:checked").length;
+            if (selected > 5) {
+                $("#makeMatchButton").removeAttr("disabled");
+            } else {
+                $("#makeMatchButton").attr("disabled", true);
+            }
+        }
+
+        function makeMatch() {
+            var userSelects = $("input.selectBox:checked");
+            var users = [];
+            $(userSelects).each(function () {
+                users.push($(this).attr("user-id"));
+            });
+            var deviation = $('#deviation').val().replace(",", ".");
+            if (deviation == "") deviation = 0.05;
+            $.ajax({
+                type: 'post',
+                url: '/api/MatchMaking',
+                data: {
+                    userIds: users,
+                    deviation: deviation
+                },
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    var txt = "";
+
+                    $(response).each(function ()
+                    {
+                        txt += "--------------------------------------------------------------------------\r\n";
+                        txt += "Team " + this.name + ": " + this.ranking;
+                        txt += "\r\n";
+                        $(this.users).each(function () {
+                            txt += this.name;
+                            txt += "\r\n";
+                        });
+                        txt += "\r\n";
+                    });
+                    $("#teamsContainer").text(txt);
+                },
+                error: function (data) {
+                    userRow.find(".status").text("Fehler beim Match generieren.");
+
+                }
+            });
+        }
 
         // https://stackoverflow.com/questions/10270648/determine-if-javascript-value-is-an-integer
         function isInteger(ranking) {
             return Math.floor(ranking) == ranking && $.isNumeric(ranking);
         }
+
+        $('#PlusButton').on('click', function () {
+    var input = $('#deviation');
+    input.val(parseFloat(input.val()) + 0.05);
+        })
+        $('#deviation').on('click', function () {
+    var input = $('#BoqTextBox');
+    input.val(parseFloat(input.val()) - 0.05);
+})
+
     </script>
 }

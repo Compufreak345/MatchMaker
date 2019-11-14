@@ -8,6 +8,11 @@ namespace MatchMaker.Data
 {
     public class MmDbContext : IdentityDbContext<User, Role, Guid>
     {
+        public DbSet<Game> Games { get; set; }
+        public DbSet<Ranking> Rankings { get; set; }
+        public new DbSet<User> Users { get; set; }
+        public new DbSet<Role> Roles { get; set; }
+
         public MmDbContext(DbContextOptions<MmDbContext> options)
             : base(options)
         {

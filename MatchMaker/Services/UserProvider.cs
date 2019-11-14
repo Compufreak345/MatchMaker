@@ -1,4 +1,5 @@
 ﻿using MatchMaker.Data;
+using MatchMaker.Presentation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,8 @@ namespace MatchMaker.Services
 {
     public class UserProvider
     {
-        public User User { get; set; }
+        public UserModel User => new UserModel(DbUser);
+
+        public User DbUser { get; set; }
     }
 }

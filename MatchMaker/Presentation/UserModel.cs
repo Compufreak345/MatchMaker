@@ -26,7 +26,7 @@ namespace MatchMaker.Presentation
 
         public string Name { get; set; }
 
-        public int PersonalRanking { get; set; }
+        public double PersonalRanking { get; set; }
 
         public int VotesReceived { get; set; }
 
@@ -36,13 +36,25 @@ namespace MatchMaker.Presentation
 
         public Guid Id { get; set; }
 
-        public int CalcUserRanking(List<Ranking> receivedRankings)
+        private double CalcUserRanking(List<Ranking> receivedRankings)
         {
-            if (!receivedRankings.Any())
+            var validRankings = receivedRankings.Where(c => c.VotingPlayer.IsTrusted);
+            if (!validRankings.Any())
             {
                 return 0;
             }
-            return receivedRankings.Sum(c => c.Score) / receivedRankings.Count();
+            
+            return Math.Round((double)(validRankings.Sum(c => c.Score)) / validRankings.Count(), 1);
+        }
+
+        /// <summary>
+        /// Calculates ranking and returns 5 if no ranking was found.
+        /// </summary>
+        /// <returns></returns>
+        public double GetFallbackRanking()
+        {
+                return this.PersonalRanking == 0 ? 5 : this.PersonalRanking;
+            
         }
     }
 }

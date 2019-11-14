@@ -31,10 +31,11 @@ namespace MatchMaker.Data
             }
         }
 
-        public List<Ranking> GivenRankings { get; set; }
+        public List<Ranking> GivenRankings { get; set; } = new List<Ranking>();
 
-        public bool IsTrusted;
-        private List<Ranking> receivedRankings;
+        public bool IsTrusted { get; set; }
+
+        private List<Ranking> receivedRankings = new List<Ranking>();
 
         public void UpdateUserRanking(User votingUser, int ranking)
         {

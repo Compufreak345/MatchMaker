@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MatchMaker.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -19,6 +19,39 @@ namespace MatchMaker.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Games",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Games", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    RoleId = table.Column<Guid>(nullable: false),
+                    ClaimType = table.Column<string>(nullable: true),
+                    ClaimValue = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -41,32 +74,18 @@ namespace MatchMaker.Migrations
                     LockoutEnabled = table.Column<bool>(nullable: false),
                     AccessFailedCount = table.Column<int>(nullable: false),
                     Name = table.Column<string>(nullable: true),
-                    Alias = table.Column<string>(nullable: true)
+                    Alias = table.Column<string>(nullable: true),
+                    GameId = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetRoleClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    RoleId = table.Column<Guid>(nullable: false),
-                    ClaimType = table.Column<string>(nullable: true),
-                    ClaimValue = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
+                        name: "FK_AspNetUsers_Games_GameId",
+                        column: x => x.GameId,
+                        principalTable: "Games",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -155,7 +174,7 @@ namespace MatchMaker.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Ranking",
+                name: "Rankings",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
@@ -165,15 +184,15 @@ namespace MatchMaker.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Ranking", x => x.Id);
+                    table.PrimaryKey("PK_Rankings", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Ranking_AspNetUsers_AffectedPlayerId",
+                        name: "FK_Rankings_AspNetUsers_AffectedPlayerId",
                         column: x => x.AffectedPlayerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Ranking_AspNetUsers_VotingPlayerId",
+                        name: "FK_Rankings_AspNetUsers_VotingPlayerId",
                         column: x => x.VotingPlayerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -207,6 +226,11 @@ namespace MatchMaker.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_GameId",
+                table: "AspNetUsers",
+                column: "GameId");
+
+            migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
@@ -218,13 +242,13 @@ namespace MatchMaker.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Ranking_AffectedPlayerId",
-                table: "Ranking",
+                name: "IX_Rankings_AffectedPlayerId",
+                table: "Rankings",
                 column: "AffectedPlayerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Ranking_VotingPlayerId",
-                table: "Ranking",
+                name: "IX_Rankings_VotingPlayerId",
+                table: "Rankings",
                 column: "VotingPlayerId");
         }
 
@@ -246,13 +270,16 @@ namespace MatchMaker.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Ranking");
+                name: "Rankings");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Games");
         }
     }
 }

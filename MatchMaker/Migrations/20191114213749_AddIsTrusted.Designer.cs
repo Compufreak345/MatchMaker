@@ -9,14 +9,28 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MatchMaker.Migrations
 {
     [DbContext(typeof(MmDbContext))]
-    [Migration("20191111200909_AddUserRoles")]
-    partial class AddUserRoles
+    [Migration("20191114213749_AddIsTrusted")]
+    partial class AddIsTrusted
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "3.0.0");
+
+            modelBuilder.Entity("MatchMaker.Data.Game", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Games");
+                });
 
             modelBuilder.Entity("MatchMaker.Data.Ranking", b =>
                 {
@@ -39,7 +53,7 @@ namespace MatchMaker.Migrations
 
                     b.HasIndex("VotingPlayerId");
 
-                    b.ToTable("Ranking");
+                    b.ToTable("Rankings");
                 });
 
             modelBuilder.Entity("MatchMaker.Data.Role", b =>
@@ -92,6 +106,12 @@ namespace MatchMaker.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid?>("GameId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsTrusted")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
 
@@ -129,6 +149,8 @@ namespace MatchMaker.Migrations
                         .HasMaxLength(256);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GameId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasName("EmailIndex");
@@ -252,6 +274,13 @@ namespace MatchMaker.Migrations
                     b.HasOne("MatchMaker.Data.User", "VotingPlayer")
                         .WithMany("GivenRankings")
                         .HasForeignKey("VotingPlayerId");
+                });
+
+            modelBuilder.Entity("MatchMaker.Data.User", b =>
+                {
+                    b.HasOne("MatchMaker.Data.Game", null)
+                        .WithMany("Players")
+                        .HasForeignKey("GameId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
