@@ -241,3 +241,4 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 /src/projects/Shared.Caching.ConsoleTest
+*.pubxml
