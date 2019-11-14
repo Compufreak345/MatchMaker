@@ -242,3 +242,4 @@ ModelManifest.xml
 .fake/
 /src/projects/Shared.Caching.ConsoleTest
 *.pubxml
+*.db
