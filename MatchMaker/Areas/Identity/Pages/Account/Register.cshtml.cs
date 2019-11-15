@@ -48,12 +48,11 @@ namespace MatchMaker.Areas.Identity.Pages.Account
         {
             [Required]
             [StringLength(100, ErrorMessage = "Geht's noch länger?!?")]
-            [Display(Name = "Nickname - merk dir den lieber, mit dem loggst du dich ein.")]
+            [Display(Name = "Nickname")]
             public string Name { get; set; }
 
-            [Required]
             [EmailAddress]
-            [Display(Name = "Email - wenn du hier Quatsch reinprügelst ist das kein Ding, aber dann nerv mich später nicht wenn du dein Passwort vergisst.")]
+            [Display(Name = "Email (Optional)")]
             public string Email { get; set; }
 
             [Required]
@@ -80,12 +79,17 @@ namespace MatchMaker.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new User { UserName = Input.Name, Email = Input.Email };
+                var email = string.IsNullOrWhiteSpace(Input.Email) ? "mm@compufreak.rocks" : Input.Email;
+                var user = new User { UserName = Input.Name, Email = email };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
-
+                    if(_userManager.Users.Count()<11)
+                    {
+                        user.IsTrusted = true;
+                        await _userManager.UpdateAsync(user);
+                    }
                     /*var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
@@ -99,11 +103,11 @@ namespace MatchMaker.Areas.Identity.Pages.Account
                         */
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
+                        return RedirectToPage("RegisterConfirmation", new { email = email });
                     }
                     else
                     {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        await _signInManager.SignInAsync(user, isPersistent: true);
                         return LocalRedirect(returnUrl);
                     }
                 }

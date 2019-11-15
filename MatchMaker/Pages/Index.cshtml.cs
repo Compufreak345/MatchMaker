@@ -19,13 +19,12 @@ namespace MatchMaker.Areas.MM.Pages
         private readonly UserRepository userRepository;
 
         public List<UserModel> Users { get; set; }
-
-        
-
+        private readonly User CurrentDbUser;
         public UserModel CurrentUser { get; }
 
-        public IndexModel(UserRepository userRepository, UserProvider userProvider)
+        public IndexModel(MmDbContext ctx, UserRepository userRepository, UserProvider userProvider)
         {
+            this.CurrentDbUser = userProvider.DbUser;
             this.CurrentUser = userProvider.User;
             this.userRepository = userRepository;
         }
@@ -36,7 +35,7 @@ namespace MatchMaker.Areas.MM.Pages
             {
                 users = users.Where(c => !(c.UserName.StartsWith("Compu") && c.UserName != "Compu")).ToList();
             }*/
-            this.Users = users.Select(c => new UserModel(c)).ToList();
+            this.Users = users.Select(c => new UserModel(c, this.CurrentDbUser)).ToList();
         }
     }
 }

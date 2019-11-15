@@ -13,16 +13,22 @@ namespace MatchMaker.Presentation
 
         }
 
-        public UserModel(User user)
+        public UserModel(User user, User VotingUser = null)
         {
 
             this.Name = user.UserName;
+            if(VotingUser != null)
+            {
+                this.YourGivenRanking = VotingUser.GivenRankings.SingleOrDefault(c=>c.AffectedPlayer.Id == user.Id)?.Score ?? 0;
+            }
             this.PersonalRanking = this.CalcUserRanking(user.ReceivedRankings.ToList());
             this.VotesGiven = user.GivenRankings?.Count() ?? 0;
             this.VotesReceived = user.ReceivedRankings?.Count() ?? 0;
             this.IsTrusted = user.IsTrusted;
             this.Id = user.Id;
         }
+
+        public int YourGivenRanking { get; set; }
 
         public string Name { get; set; }
 
