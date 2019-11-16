@@ -31,10 +31,10 @@ namespace MatchMaker.Areas.MM.Pages
         public void OnGet()
         {
             var users = userRepository.GetDbSet().ToList();
-           /* if(!this.CurrentUser.Name.StartsWith("Compu"))
+            if(!this.CurrentUser.Name.StartsWith("Compu"))
             {
-                users = users.Where(c => !(c.UserName.StartsWith("Compu") && c.UserName != "Compu")).ToList();
-            }*/
+                users = users.Where(c => !((c.UserName.StartsWith("Compu") && c.UserName != "Compu")||c.UserName=="Werner")).ToList();
+            }
             this.Users = users.Select(c => new UserModel(c, this.CurrentDbUser)).ToList();
         }
     }

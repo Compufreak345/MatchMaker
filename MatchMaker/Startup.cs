@@ -76,6 +76,7 @@ namespace MatchMaker
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, MmDbContext dbContext)
         {
             dbContext.Database.Migrate();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

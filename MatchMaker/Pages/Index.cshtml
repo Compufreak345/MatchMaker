@@ -8,7 +8,7 @@
 <div class="row">
     Ein Ranking von 0 entspricht einem nicht vergebenen Ranking.
     <table id="players">
-        <tr><th>Name</th><th>Trusted</th><th>Votes received</th><th>Votes given</th><th>Ranking</th><th>Status</th></tr>
+        <tr><th>Name</th><th>Trusted</th><th>Votes received</th><th>Votes given</th><th>Ranking ( 1 - 10 )</th><th>Status</th></tr>
         @foreach (var user in this.Model.Users)
         {
             <tr id="userRow_@user.Id">
@@ -22,7 +22,17 @@
                 <td class="isTrusted">@user.IsTrusted</td>
                 <td class="votesReceived">@user.VotesReceived</td>
                 <td class="votesGiven">@user.VotesGiven</td>
-                <td><input type="text" lastval="@user.YourGivenRanking" class="userRanking" user-id="@user.Id" value="@user.YourGivenRanking" /></td>
+                <td id="givenRankingTd_@user.Id">
+                    @if (user.Id == Model.CurrentUser.Id)
+                    {
+                        @user.PersonalRanking;
+                    }
+                    else
+                    {
+                        <input type="range" id="givenRanking_@user.Id" min="0" max="10" oninput="UpdateSliderValue(this)" lastval="@user.YourGivenRanking" class="userRanking form-control-range" user-id="@user.Id" value="@user.YourGivenRanking" />
+                        <label class="sliderValue" for="givenRanking_@user.Id">@user.YourGivenRanking</label>
+                    }
+                </td>
                 <td class="status">Gespeichert</td>
             </tr>
         }
@@ -30,7 +40,9 @@
 </div>
 <div class="row">
     <div class="col-md-4">
-        <input id="deviation" type="number" min="0.05" max="1" step="0.05" value="0.2" class="form-control" /><label for="deviation">Erlaubte Abweichung</label>
+        <label for="deviation">Erlaubte Abweichung: </label><input id="deviation" oninput="UpdateSliderValue(this)" type="range" min="0.05" max="1" step="0.05" value="0.1" class="form-control-range" />
+        <div class="sliderValue">0.1</div>
+
     </div>
     <div class="col-md-8">
         <button onclick="makeMatch()" id="makeMatchButton" class="btn btn-primary" disabled>Make Match</button>
@@ -44,16 +56,24 @@
     <script type="text/javascript">
         var pendingUpdates = {};
         $(document).ready(function () {
+
             var currentUserRow = $($("#userRow_@this.Model.CurrentUser.Id"));
             currentUserRow.find('input.userRanking').attr("disabled", true);
+
             $(".userRanking").change(function (eventData) {
                 var el = $(eventData.target);
                 var userId = el.attr("user-id");
                 clearTimeout(pendingUpdates[userId]);
                 pendingUpdates[userId] = setTimeout(function() {
                     var el = $(eventData.target);
+
+                    var parentRow = el.closest("tr");
+                    parentRow.css("background-color", "#FFCC00");
                     var userId = el.attr("user-id");
                     var ranking = $(el).val();
+
+                    $("#givenRankingLabel_" + userId).text(ranking);
+
                     var lastRanking = $(el).attr("lastval");
                     var userRow = $($("#userRow_" + userId));
 
@@ -87,6 +107,8 @@
                                     currentUserRow.find(".votesGiven").text(response.votingUser.votesGiven);
                                     currentUserRow.find(".personalRanking").val(response.votingUser.personalRanking);
                                     currentUserRow.find(".status").text("Gespeichert");
+
+                                    parentRow.css("background-color", "#88FF88");
                                 },
                                 error: function (data) {
                                     userRow.find(".status").text("Fehler beim Speichern.");
@@ -101,11 +123,16 @@
         });
         // https://stackoverflow.com/questions/18296850/click-table-rows-to-select-checkbox-using-jquery
         $('#players tr').click(function (event) {
-            if (event.target.type !== 'checkbox' && event.target.type != "text") {
+            if (event.target.type !== 'checkbox' && event.target.type != "text" && event.target.type != "range") {
               $(':checkbox', this).trigger('click');
             }
           });
         
+        function UpdateSliderValue(el) {
+            
+            var val = el.value;
+            $(el).parent().find(".sliderValue").text(val);
+        }
 
         function selectChanged() {
             var selected = $("input.selectBox:checked").length;
