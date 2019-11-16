@@ -43,7 +43,7 @@ namespace MatchMaker.Presentation
 
         private double CalcUserRanking(List<Ranking> receivedRankings)
         {
-            var validRankings = receivedRankings.Where(c => c.VotingPlayer.IsTrusted);
+            var validRankings = receivedRankings.Where(c => c.VotingPlayer?.IsTrusted ?? false);
             if (!validRankings.Any())
             {
                 return 0;

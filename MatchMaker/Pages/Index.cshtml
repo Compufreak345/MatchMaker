@@ -6,34 +6,56 @@
 
 <h1>@ViewData["Title"]</h1>
 <div class="row">
-    Ein Ranking von 0 entspricht einem nicht vergebenen Ranking.
-    <table id="players">
-        <tr><th>Name</th><th>Trusted</th><th>Votes received</th><th>Votes given</th><th>Ranking ( 1 - 10 )</th><th>Status</th></tr>
+    <table id="players" class="table">
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Stimmen bekommen</th>
+            <th scope="col">Stimmen abgegeben</th>
+            <th scope="col">Ranking ( 1 - 10 )</th>
+            <th>Status</th>
+        </tr>
         @foreach (var user in this.Model.Users)
         {
-            <tr id="userRow_@user.Id">
+            <tr id="userRow_@user.Id" scope="row">
                 <td>
                     <div class="form-check">
                         <input class="form-check-input selectBox" onchange="selectChanged()" id="userCheckbox_@user.Id" type="checkbox" user-id="@user.Id" value="">
                         <label class="form-check-label">
                             @user.Name
+                            @if (user.IsTrusted)
+                            {
+                                <img src="~/img/success.svg" class="icon" />
+                            }
+                            else
+                            {
+                                <img src="~/img/error.svg" class="icon" />
+                            }
                         </label>
                     </div>
-                <td class="isTrusted">@user.IsTrusted</td>
-                <td class="votesReceived">@user.VotesReceived</td>
-                <td class="votesGiven">@user.VotesGiven</td>
-                <td id="givenRankingTd_@user.Id">
+                <td style="width:50px;" class="votesReceived">@user.VotesReceived</td>
+                <td style="width:50px;" class="votesGiven">@user.VotesGiven</td>
+                <td style="width:200px;" id="givenRankingTd_@user.Id">
+
                     @if (user.Id == Model.CurrentUser.Id)
                     {
-                    <div id="userRanking">@user.CalculatedRanking;</div>
+                        
                     }
                     else
                     {
-                        <input type="range" id="givenRanking_@user.Id" min="0" max="10" oninput="UpdateSliderValue(this)" lastval="@user.YourGivenRanking" class="userRanking form-control-range" user-id="@user.Id" value="@user.YourGivenRanking" />
-                        <label class="sliderValue" for="givenRanking_@user.Id">@user.YourGivenRanking</label>
+                        <form class="form-inline">
+                            <div class="form-group">
+                                <label for="givenRanking_@user.Id" class="sliderValue">
+                                    @user.YourGivenRanking
+                                </label>
+                                <input style="padding-left:10px;" type="range" id="givenRanking_@user.Id" min="0" max="10" oninput="UpdateSliderValue(this)"
+                                       lastval="@user.YourGivenRanking" class="userRanking form-control"
+                                       user-id="@user.Id" value="@user.YourGivenRanking" />
+                            </div>
+                        </form>
                     }
+
                 </td>
-                <td class="status">Gespeichert</td>
+                <td style="width:50px;" class="status">Gespeichert</td>
             </tr>
         }
     </table>
@@ -133,11 +155,11 @@
               $(':checkbox', this).trigger('click');
             }
           });
-        
+
         function UpdateSliderValue(el) {
-            
+
             var val = el.value;
-            $(el).parent().find(".sliderValue").text(val);
+            $(el).closest("td").find(".sliderValue").text(val);
         }
 
         function selectChanged() {

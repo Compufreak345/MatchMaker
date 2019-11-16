@@ -35,7 +35,7 @@ namespace MatchMaker.Areas.MM.Pages
             {
                 users = users.Where(c => !((c.UserName.StartsWith("Compu") && c.UserName != "Compu")||c.UserName=="Werner")).ToList();
             }
-            this.Users = users.Select(c => new UserModel(c, this.CurrentDbUser)).ToList();
+            this.Users = users.Select(c => new UserModel(c, this.CurrentDbUser)).OrderByDescending(c=>c.YourGivenRanking).ToList();
         }
     }
 }
