@@ -22,7 +22,7 @@ namespace MatchMaker.Areas.MM.Pages
         private readonly User CurrentDbUser;
         public UserModel CurrentUser { get; }
 
-        public IndexModel(MmDbContext ctx, UserRepository userRepository, UserProvider userProvider)
+        public IndexModel(UserRepository userRepository, UserProvider userProvider)
         {
             this.CurrentDbUser = userProvider.DbUser;
             this.CurrentUser = userProvider.User;

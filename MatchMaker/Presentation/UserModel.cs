@@ -15,13 +15,12 @@ namespace MatchMaker.Presentation
 
         public UserModel(User user, User VotingUser = null)
         {
-
             this.Name = user.UserName;
             if(VotingUser != null)
             {
-                this.YourGivenRanking = VotingUser.GivenRankings.SingleOrDefault(c=>c.AffectedPlayer.Id == user.Id)?.Score ?? 0;
+                this.YourGivenRanking = VotingUser.GivenRankings.SingleOrDefault(c=>c.AffectedPlayer?.Id == user.Id)?.Score ?? 0;
             }
-            this.PersonalRanking = this.CalcUserRanking(user.ReceivedRankings.ToList());
+            this.CalculatedRanking = this.CalcUserRanking(user.ReceivedRankings.ToList());
             this.VotesGiven = user.GivenRankings?.Count() ?? 0;
             this.VotesReceived = user.ReceivedRankings?.Count() ?? 0;
             this.IsTrusted = user.IsTrusted;
@@ -32,7 +31,7 @@ namespace MatchMaker.Presentation
 
         public string Name { get; set; }
 
-        public double PersonalRanking { get; set; }
+        public double CalculatedRanking { get; set; }
 
         public int VotesReceived { get; set; }
 
@@ -59,7 +58,7 @@ namespace MatchMaker.Presentation
         /// <returns></returns>
         public double GetFallbackRanking()
         {
-                return this.PersonalRanking == 0 ? 5 : this.PersonalRanking;
+                return this.CalculatedRanking == 0 ? 5 : this.CalculatedRanking;
             
         }
     }

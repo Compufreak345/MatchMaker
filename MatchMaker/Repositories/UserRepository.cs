@@ -28,7 +28,11 @@ namespace MatchMaker.Repositories
 
         public IQueryable<User> GetDbSet()
         {
-           return this.dbContext.Users.Include(c => c.ReceivedRankings).ThenInclude(c => c.VotingPlayer).Include(c => c.GivenRankings).ThenInclude(c => c.VotingPlayer);
+           return this.dbContext.Users
+                .Include(c => c.ReceivedRankings)
+                    .ThenInclude(c => c.VotingPlayer)
+                .Include(c => c.GivenRankings)
+                    .ThenInclude(c => c.VotingPlayer);
         }
 
         internal Task SaveChangesAsync()

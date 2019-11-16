@@ -39,7 +39,7 @@ namespace MatchMaker.Controllers
             await this.userRepository.SaveChangesAsync();
             var result = new RankingUpdateResponse()
             {
-                VotedUser = new UserModel(user),
+                VotedUser = new UserModel(user, this.currentDbUser),
                 VotingUser = new UserModel(this.currentDbUser)
             };
             return new OkObjectResult(result);

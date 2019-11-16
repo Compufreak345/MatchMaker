@@ -25,7 +25,7 @@
                 <td id="givenRankingTd_@user.Id">
                     @if (user.Id == Model.CurrentUser.Id)
                     {
-                        @user.PersonalRanking;
+                    <div id="userRanking">@user.CalculatedRanking;</div>
                     }
                     else
                     {
@@ -98,17 +98,23 @@
                                     userRow.find(".isTrusted").text(response.votedUser.isTrusted);
                                     userRow.find(".votesReceived").text(response.votedUser.votesReceived);
                                     userRow.find(".votesGiven").text(response.votedUser.votesGiven);
-                                    userRow.find(".personalRanking").val(response.votedUser.personalRanking);
+                                    userRow.find(".userRanking").val(response.votedUser.yourGivenRanking);
                                     userRow.find(".status").text("Gespeichert");
-                                    userRow.find(".personalRanking").attr("lastval", response.votedUser.personalRanking);
+                                    userRow.find(".userRanking").attr("lastval", response.votedUser.yourGivenRanking);
+                                    UpdateSliderValue(userRow.find(".userRanking"));
 
                                     currentUserRow.find(".isTrusted").text(response.votingUser.isTrusted);
                                     currentUserRow.find(".votesReceived").text(response.votingUser.votesReceived);
                                     currentUserRow.find(".votesGiven").text(response.votingUser.votesGiven);
-                                    currentUserRow.find(".personalRanking").val(response.votingUser.personalRanking);
+                                    currentUserRow.find(".userRanking").text(response.votingUser.calculatedRanking);
                                     currentUserRow.find(".status").text("Gespeichert");
 
-                                    parentRow.css("background-color", "#88FF88");
+                                    if (response.votedUser.yourGivenRanking > 0) {
+                                        parentRow.css("background-color", "#d3ffd1");
+                                    }
+                                    else {
+                                        parentRow.css("background-color", "#999999");
+                                    }
                                 },
                                 error: function (data) {
                                     userRow.find(".status").text("Fehler beim Speichern.");
