@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace MatchMaker.Controllers
 {
@@ -30,19 +31,25 @@ namespace MatchMaker.Controllers
         [HttpPost]
         public async Task<ActionResult> Vote([FromForm] Guid userId, [FromForm] int ranking)
         {
-            var user = await this.userRepository.GetUserAsync(userId);
-            if (user == null)
+            using (var transaction = await this.userRepository.BeginTransactionAsync())
             {
-                return new BadRequestResult();
+                var user = await this.userRepository.GetUserAsync(userId);
+                if (user == null)
+                {
+                    return new BadRequestResult();
+                }
+                user.UpdateUserRanking(this.currentDbUser, ranking);
+                await this.userRepository.SaveChangesAsync();
+                var result = new RankingUpdateResponse()
+                {
+                    VotedUser = new UserModel(user, this.currentDbUser),
+                    VotingUser = new UserModel(this.currentDbUser)
+                };
+                await transaction.CommitAsync();
+                return new OkObjectResult(result);
             }
-            user.UpdateUserRanking(this.currentDbUser, ranking);
-            await this.userRepository.SaveChangesAsync();
-            var result = new RankingUpdateResponse()
-            {
-                VotedUser = new UserModel(user, this.currentDbUser),
-                VotingUser = new UserModel(this.currentDbUser)
-            };
-            return new OkObjectResult(result);
+            
+            
         }
     }
 }

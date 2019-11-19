@@ -1,5 +1,6 @@
 ﻿using MatchMaker.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,12 @@ namespace MatchMaker.Repositories
         public UserRepository(MmDbContext dbContext)
         {
             this.dbContext = dbContext;
+        }
+
+        public Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            dbContext.Database.ExecuteSqlRaw("PRAGMA synchronous = OFF");
+            return this.dbContext.Database.BeginTransactionAsync();
         }
 
         public async Task<User> GetUserAsync(Guid id)

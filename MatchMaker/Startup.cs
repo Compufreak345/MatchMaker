@@ -20,14 +20,19 @@ using MatchMaker.Configuration;
 using Microsoft.AspNetCore.Http;
 using MatchMaker.Middleware;
 using MatchMaker.Repositories;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace MatchMaker
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IWebHostEnvironment env;
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            this.env = env;
         }
 
         public IConfiguration Configuration { get; }
@@ -37,18 +42,22 @@ namespace MatchMaker
         {
             var connectionString = Configuration.GetConnectionString("DefaultConnection");
             var builder = new SqliteConnectionStringBuilder(connectionString);
-            builder.DataSource = Path.GetFullPath(
-                Path.Combine(
-                    AppDomain.CurrentDomain.GetData("DataDirectory") as string
-                        ?? AppDomain.CurrentDomain.BaseDirectory,
-                    builder.DataSource));
-            connectionString = builder.ToString();
-
+            if (builder.DataSource.StartsWith("./"))
+            { // Calculate relative path https://stackoverflow.com/questions/49290182/efcore-sqlite-connection-string-with-relative-path-in-asp-net
+                // 
+                builder.DataSource = Path.GetFullPath(
+                    Path.Combine(
+                        AppDomain.CurrentDomain.GetData("DataDirectory") as string
+                            ?? AppDomain.CurrentDomain.BaseDirectory,
+                        builder.DataSource));
+                connectionString = builder.ToString();
+            }
 
             services.AddDbContext<MmDbContext>(options =>
                 options.UseSqlite(
                     connectionString));
-            services.AddDefaultIdentity<User>(options => {
+            services.AddDefaultIdentity<User>(options =>
+            {
                 options.SignIn.RequireConfirmedAccount = false;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredLength = 3;
@@ -57,7 +66,7 @@ namespace MatchMaker
                 options.Password.RequireUppercase = false;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 30;
-                })
+            })
                 .AddEntityFrameworkStores<MmDbContext>()
                 ;
             //services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -68,14 +77,26 @@ namespace MatchMaker
             services.AddTransient<IEmailSender, MmEmailSender>();
             services.Configure<Email>(this.Configuration.GetSection("Email"));
 
-            
+
             services.AddRazorPages();
+
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            });
+            if (!this.env.IsDevelopment())
+            {
+                services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo(@"/home/matchmaker/database/keys.txt"));
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, MmDbContext dbContext)
         {
             dbContext.Database.Migrate();
+            app.UseForwardedHeaders();
 
             if (env.IsDevelopment())
             {
@@ -84,9 +105,11 @@ namespace MatchMaker
             }
             else
             {
+
                 app.UseExceptionHandler("/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
+
             }
 
             app.UseHttpsRedirection();
@@ -97,7 +120,7 @@ namespace MatchMaker
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseMiddleware<UserProviderMiddleware>(); 
+            app.UseMiddleware<UserProviderMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {

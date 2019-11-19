@@ -48,9 +48,10 @@ namespace MatchMaker.Services
                     Name = TeamNames.ElementAt(i)
                 });
             }
+
             var players = (await this.userRepository.GetUsersAsync(userIds)).Select(c => new UserModel(c));
             var playerCount = players.Count();
-            var rankSum = players.Select(c=>c.GetFallbackRanking()).Sum();
+            var rankSum = players.Select(c => c.GetFallbackRanking()).Sum();
             var targetSumPerTeam = rankSum / noOfTeams;
             var minSumPerTeam = targetSumPerTeam - targetSumPerTeam * allowedAbweichung / 2;
             var maxSumPerTeam = targetSumPerTeam + targetSumPerTeam * allowedAbweichung / 2;
@@ -66,13 +67,14 @@ namespace MatchMaker.Services
                     teamIdx = rand.Next(noOfTeams);
                     team = teams.ElementAt(teamIdx);
                     teamFindTryCount++;
-                } while (teamFindTryCount < 100 && !this.TeamIsInRange(player, maxSumPerTeam, playersPerTeam, team));
+                } while (teamFindTryCount < 100 && !this.TeamIsInRange(maxSumPerTeam, playersPerTeam, team, player));
                 team.Users.Add(player);
             }
 
-            if(teams.Any(c=>c.Ranking>maxSumPerTeam || c.Ranking<minSumPerTeam))
+
+            if (teams.Any(c => !this.TeamIsInRange(maxSumPerTeam, playersPerTeam, c, minSumPerTeam: minSumPerTeam)))
             {
-                if(tryCount > 100)
+                if (tryCount > 100)
                 {
                     allowedAbweichung += 0.025;
                     tryCount = 0;
@@ -82,15 +84,20 @@ namespace MatchMaker.Services
             return teams;
         }
 
-        private bool TeamIsInRange(UserModel player, double maxSumPerTeam, int playersPerTeam, TeamModel team)
+        private bool TeamIsInRange(double maxSumPerTeam, int playersPerTeam, TeamModel team, UserModel additionalPlayer = null, double minSumPerTeam = 0)
         {
-            var players = team.Users;
-            if(players.Count >= playersPerTeam)
+            var players = team.Users.Select(c=>c).ToList();
+            if(additionalPlayer != null)
+            {
+                players.Add(additionalPlayer);
+            }
+
+            if (players.Count > playersPerTeam)
             {
                 return false;
             }
 
-            if(team.Ranking + player.GetFallbackRanking() > maxSumPerTeam)
+            if (team.Ranking > maxSumPerTeam || team.Ranking < minSumPerTeam)
             {
                 return false;
             }
