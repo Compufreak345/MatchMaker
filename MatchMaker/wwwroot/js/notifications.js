@@ -14,6 +14,7 @@ connection.on("ReceiveVoteStarted", function (maps, user) {
 
     document.getElementById("activeVotes").appendChild(li);
     $(li).on("click", function () { showVote(maps); });
+    $(li).addClass("voteStartedItem");
 
 });
 
@@ -21,7 +22,7 @@ function showVote(maps) {
     var li = $("#voteel_" + maps.id);
     $(maps.maps).each(function (i, map) {
         var div = $("#VotingItemTemplate").clone();
-        li.append(div);
+        li.after(div);
         li.off("click");
 
         div.attr("id", map.id);

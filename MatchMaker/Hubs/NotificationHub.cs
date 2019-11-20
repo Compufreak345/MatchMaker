@@ -38,7 +38,7 @@ namespace MatchMaker.Hubs
                 return;
             }
 
-            var mapList = maps.Split("\n").Select(c=> new VoteItem()
+            var mapList = maps.Split("\n", StringSplitOptions.RemoveEmptyEntries).Select(c=> new VoteItem()
             {
                 Name = c,
                 VoteCount = 0,

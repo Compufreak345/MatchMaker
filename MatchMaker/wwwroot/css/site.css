@@ -125,3 +125,7 @@ div.mapVoteBar {
     height: 24px;
     background-color: #b7f7b3;
 }
+
+.voteStartedItem {
+    background-color: #ff4f36;
+}
