@@ -22,7 +22,7 @@ namespace MatchMaker.Services
 
         public void AddVote(MapVote mapVote)
         {
-            this.cache.Set(this.GetMapVoteKey(mapVote.Id), mapVote, TimeSpan.FromMinutes(20));
+            this.cache.Set(this.GetMapVoteKey(mapVote.Id), mapVote, TimeSpan.FromMinutes(30));
             activeVotes.TryAdd(mapVote.Id, true);
         }
 
@@ -45,7 +45,22 @@ namespace MatchMaker.Services
             return mapVote;
         }
 
-        public IEnumerable<MapVote> GetActiveVotes()
+        public async Task<bool> DeleteVoteAsync(Guid voteId, User user)
+        {
+            var key = this.GetMapVoteKey(voteId);
+            var mapVote = this.cache.Get<MapVote>(key);
+            if (mapVote == null) return true;
+            if(user.UserName != mapVote.StartingUser)
+            {
+                return false;
+            }
+
+            activeVotes.Remove(voteId, out _);
+            this.cache.Remove(key);
+            return true;
+        }
+
+            public IEnumerable<MapVote> GetActiveVotes()
         {
             List<MapVote> votes = new List<MapVote>();
             foreach (var item in activeVotes.Keys.ToList())

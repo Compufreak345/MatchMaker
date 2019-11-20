@@ -32,9 +32,9 @@ namespace MatchMaker.Hubs
         {
 
             var user = await this.GetCurrentUserAsync();
-            if(this.cache.GetActiveVotes().Count(c=>c.StartingUser == user.UserName) > 4)
+            if(this.cache.GetActiveVotes().Count(c=>c.StartingUser == user.UserName) > 2)
             {
-                await Clients.Caller.SendAsync("Alert", "Mehr als 5 offene Votes am Stück sind nicht erlaubt.");
+                await Clients.Caller.SendAsync("Alert", "Mehr als 3 offene Votes am Stück sind nicht erlaubt.");
                 return;
             }
 
@@ -59,6 +59,16 @@ namespace MatchMaker.Hubs
             await Clients.All.SendAsync("ReceiveVoteStarted", mapVote, user.UserName);
         }
 
+        public async Task DeleteVote(Guid id)
+        {
+            var user = await this.GetCurrentUserAsync();
+            var success = await this.cache.DeleteVoteAsync(id, user);
+            if(success)
+            {
+                await Clients.All.SendAsync("VoteDeleted", id);
+            }
+        }
+
         public async override Task OnConnectedAsync()
         {
             
@@ -75,7 +85,7 @@ namespace MatchMaker.Hubs
 
             var user = await this.GetCurrentUserAsync();
             var vote = await this.cache.VoteAsync(voteId, mapId, user);
-
+                
             await Clients.All.SendAsync("UpdateVote", vote);
         }
 

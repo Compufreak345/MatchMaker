@@ -61,7 +61,7 @@ html {
 }
 
 html, body {
-    width:100%;
+    width:95%;
 }
 body {
     /* Margin bottom by footer height */
@@ -109,9 +109,9 @@ img.icon {
 }
 
 .full-width {
-    width: 100%;
-    min-width: 100%;
-    max-width: 100%;
+    width: 95%;
+    min-width: 95%;
+    max-width: 95%;
 }
 
 div.mapItem {
@@ -128,4 +128,12 @@ div.mapVoteBar {
 
 .voteStartedItem {
     background-color: #ff4f36;
+}
+
+.VotingItemTemplate {
+    width:400px;
+}
+
+#activeVotes {
+    width:600px;
 }

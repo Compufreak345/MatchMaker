@@ -6,37 +6,54 @@ var connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").
 document.getElementById("sendButton").disabled = true;
 
 connection.on("ReceiveVoteStarted", function (maps, user) {
-    var usr = user.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    var encodedMsg = usr + " hat einen Vote gestartet (hier klicken zum Anzeigen)";
-    var li = document.createElement("li");
-    li.textContent = encodedMsg;
-    li.id = "voteel_" + maps.id;
 
-    document.getElementById("activeVotes").appendChild(li);
-    $(li).on("click", function () { showVote(maps); });
-    $(li).addClass("voteStartedItem");
+
+    var li = $("#activeVoteItemTemplate").clone();
+    $("#activeVotes").append(li);
+
+    if (maps.startingUser === currentUserName) {
+        var deleteButton = li.find(".deleteVoteButton");
+        deleteButton.on("click", function () { sendDeleteVote(maps.id); });
+        deleteButton.show();
+
+    }
+
+    li.attr("id","voteel_" + maps.id);
+    li.on("click", function () { showVote(maps.id); });
+    UpdateVoteValues(maps);
+    li.show();
 
 });
 
-function showVote(maps) {
-    var li = $("#voteel_" + maps.id);
-    $(maps.maps).each(function (i, map) {
-        var div = $("#VotingItemTemplate").clone();
-        li.after(div);
-        li.off("click");
-
-        div.attr("id", map.id);
-        div.find('.voteButton').on("click", function () { callVote(maps.id, map.id) });
-        div.find(".mapName").text(map.name);
-
-        div.show();
-
+function sendDeleteVote(mapsid) {
+    connection.invoke("DeleteVote", mapsid).catch(function (err) {
+        return console.error(err.toString());
     });
-    UpdateVoteValues(maps);
+}
+
+function updateVoteTitle(maps, user) {
+    var msg = user + " hat einen Vote gestartet (" + maps.playersVoted.length + ")";
+    console.log(msg);
+    var li = $("#voteel_" + maps.id);
+    li.find(".text").text(msg);
+}
+
+function showVote(mapsid) {
+    var li = $("#voteel_" + mapsid);
+    li.off("click");
+    var container = $("#" + mapsid);
+    li.on("click", function () { hideVote(li, container, mapsid); });
+    container.show();
+}
+
+function hideVote(li, container, mapsid) {
+    container.hide();
+    $(li).off("click");
+    $(li).on("click", function () { showVote(mapsid); });
 }
 
 function callVote(voteId, mapId) {
-
+    $("#" + voteId).find(".voteButton").attr("disabled", true);
     connection.invoke("Vote", voteId, mapId).catch(function (err) {
         return console.error(err.toString());
     });
@@ -63,15 +80,29 @@ document.getElementById("sendButton").addEventListener("click", function (event)
 
 connection.on("UpdateVote", function (maps) {
     var li = $("#voteel_" + maps.id);
-    /*li.css("background-color", "#ffcc00");
+    li.css("background-color", "#ffcc00");
     window.setTimeout(function () {
         li.css("background-color", "#d3ffd1");
-    }, 200);*/
+    }, 100);
     UpdateVoteValues(maps);
 });
 
+connection.on("VoteDeleted", function (mapsid) {
+    var li = $("#voteel_" + mapsid);
+    li.remove();
+    var container = $("#" + mapsid);
+    container.remove();
+});
+
 function UpdateVoteValues(maps) {
+
+    var container = $("#" + maps.id);
+    if (container.length === 0) {
+        LoadVote(maps);
+    }
     var len = maps.playersVoted.length;
+    updateVoteTitle(maps, maps.startingUser);
+
     $(maps.maps).each(function (i, map) {
         var mapel = $("#" + map.id).find(".mapVoteBar");
         if (len === 0)
@@ -88,5 +119,32 @@ function UpdateVoteValues(maps) {
         } else {
             mapel.text(map.VoteCount);
         }
+    });
+}
+
+function LoadVote(maps) {
+   
+    var container = $("#" + maps.id);
+    if (container.length !== 0) {
+        return;
+    }
+    var li = $("#voteel_" + maps.id);
+
+    container = $(document.createElement("div"));
+    container.addClass("row");
+    container.attr("id", maps.id);
+    li.after(container);
+    container.hide();
+    $(maps.maps).each(function (i, map) {
+        var div = $("#VotingItemTemplate").clone();
+        container.append(div);
+
+
+        div.attr("id", map.id);
+        div.find('.voteButton').on("click", function () { callVote(maps.id, map.id) });
+        div.find(".mapName").text(map.name);
+
+        div.show();
+
     });
 }
