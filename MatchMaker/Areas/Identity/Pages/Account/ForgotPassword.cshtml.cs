@@ -32,15 +32,14 @@ namespace MatchMaker.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
-            [EmailAddress]
-            public string Email { get; set; }
+            public string Name { get; set; }
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(Input.Email);
+                var user = await _userManager.FindByNameAsync(Input.Name);
                 if (user == null /*|| !(await _userManager.IsEmailConfirmedAsync(user))*/)
                 {
                     // Don't reveal that the user does not exist or is not confirmed
@@ -58,7 +57,7 @@ namespace MatchMaker.Areas.Identity.Pages.Account
                     protocol: Request.Scheme);
 
                 await _emailSender.SendEmailAsync(
-                    Input.Email,
+                    user.Email,
                     "Passwort zurücksetzen",
                     $"Moin {user.UserName} - Klicke ma <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>hier</a>.");
 

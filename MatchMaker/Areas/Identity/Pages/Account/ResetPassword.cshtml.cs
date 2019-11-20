@@ -29,8 +29,7 @@ namespace MatchMaker.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
-            [EmailAddress]
-            public string Email { get; set; }
+            public string Name { get; set; }
 
             [Required]
             [StringLength(100, ErrorMessage = "Na komm, die {2} Zeichen schaffste noch, hm?", MinimumLength = 3)]
@@ -68,7 +67,7 @@ namespace MatchMaker.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            var user = await _userManager.FindByEmailAsync(Input.Email);
+            var user = await _userManager.FindByNameAsync(Input.Name);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
