@@ -63,7 +63,7 @@ namespace MatchMaker.Hubs
         {
             
             await base.OnConnectedAsync();
-            foreach(var vote in this.cache.GetActiveVotes())
+            foreach(var vote in this.cache.GetActiveVotes().OrderBy(c=>c.VoteStart))
             {
                 await Clients.Caller.SendAsync("ReceiveVoteStarted", vote, vote.StartingUser);
             }
