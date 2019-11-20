@@ -6,59 +6,97 @@
 
 <h1>@ViewData["Title"]</h1>
 <div class="row">
-    <table id="players" class="table">
-        <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Stimmen bekommen</th>
-            <th scope="col">Stimmen abgegeben</th>
-            <th scope="col">Ranking ( 1 - 10 )</th>
-            <th>Status</th>
-        </tr>
-        @foreach (var user in this.Model.Users)
-        {
-            <tr id="userRow_@user.Id" scope="row">
-                <td>
-                    <div class="form-check">
-                        <input class="form-check-input selectBox" onchange="selectChanged()" id="userCheckbox_@user.Id" type="checkbox" user-id="@user.Id" value="">
-                        <label class="form-check-label">
-                            @user.Name
-                            @if (user.IsTrusted)
-                            {
-                                <img src="~/img/success.svg" class="icon" />
-                            }
-                            else
-                            {
-                                <img src="~/img/error.svg" class="icon" />
-                            }
-                        </label>
-                    </div>
-                <td style="width:50px;" class="votesReceived">@user.VotesReceived</td>
-                <td style="width:50px;" class="votesGiven">@user.VotesGiven</td>
-                <td style="width:200px;" id="givenRankingTd_@user.Id">
+    <div class="row " id="activeVotes">
+            <div id="activeVoteItemTemplate" class="row col-md-12 voteStartedItem" style="display:none;">
+                <div class="col-md-10 text"></div><div class="col-md-2"> <button class="btn btn-danger deleteVoteButton" style="display:none;">Löschen</button></div>
+            </div>
+    </div>
+</div>
+<div id="VotingItemTemplate" class="row col-md-12 VotingItemTemplate" style="display:none;">
 
-                    @if (user.Id == Model.CurrentUser.Id)
-                    {
-                        
-                    }
-                    else
-                    {
-                        <form class="form-inline">
-                            <div class="form-group">
-                                <label for="givenRanking_@user.Id" class="sliderValue">
-                                    @user.YourGivenRanking
-                                </label>
-                                <input style="padding-left:10px;" type="range" id="givenRanking_@user.Id" min="0" max="10" oninput="UpdateSliderValue(this)"
-                                       lastval="@user.YourGivenRanking" class="userRanking form-control"
-                                       user-id="@user.Id" value="@user.YourGivenRanking" />
-                            </div>
-                        </form>
-                    }
-
-                </td>
-                <td style="width:50px;" class="status">Gespeichert</td>
+    <div class="mapItem col-md-8">
+        <div class="row">
+            <div class="mapName col-md-6"></div>
+            <div class=" col-md-6"><div class="mapVoteBar"></div></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <button id="voteButton" class="voteButton btn btn-success">Vote</button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <table id="players" class="table">
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Stimmen bekommen</th>
+                <th scope="col">Stimmen abgegeben</th>
+                <th scope="col">Ranking ( 1 - 10 )</th>
+                <th>Status</th>
             </tr>
-        }
-    </table>
+            @foreach (var user in this.Model.Users)
+            {
+                <tr id="userRow_@user.Id" scope="row">
+                    <td>
+                        <div class="form-check">
+                            <input class="form-check-input selectBox" onchange="selectChanged()" id="userCheckbox_@user.Id" type="checkbox" user-id="@user.Id" value="">
+                            <label class="form-check-label">
+                                @user.Name
+                                @if (user.IsTrusted)
+                                {
+                                    <img src="~/img/success.svg" class="icon" />
+                                }
+                                else
+                                {
+                                    <img src="~/img/error.svg" class="icon" />
+                                }
+                            </label>
+                        </div>
+                    <td style="width:50px;" class="votesReceived">@user.VotesReceived</td>
+                    <td style="width:50px;" class="votesGiven">@user.VotesGiven</td>
+                    <td style="width:200px;" id="givenRankingTd_@user.Id">
+
+                        @if (user.Id == Model.CurrentUser.Id)
+                        {
+
+                        }
+                        else
+                        {
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <label for="givenRanking_@user.Id" class="sliderValue">
+                                        @user.YourGivenRanking
+                                    </label>
+                                    <input style="padding-left:10px;" type="range" id="givenRanking_@user.Id" min="0" max="10" oninput="UpdateSliderValue(this)"
+                                           lastval="@user.YourGivenRanking" class="userRanking form-control"
+                                           user-id="@user.Id" value="@user.YourGivenRanking" />
+                                </div>
+                            </form>
+                        }
+
+                    </td>
+                    <td style="width:50px;" class="status">Gespeichert</td>
+                </tr>
+            }
+        </table>
+    </div>
+    <div class="col-md-4">
+       
+        <textarea id="Maps" cols="40" rows="15">
+de_inferno
+de_dust2
+de_train
+de_mirage
+de_vertigo
+de_cobblestone
+de_nuke
+de_overpass
+de_cache
+de_aztec
+</textarea>
+        <br />
+        <input type="button" class="btn btn-success" id="sendButton" value="Start Vote" />
+    </div>
 </div>
 <div class="row">
     <div class="col-md-4">
@@ -76,6 +114,8 @@
 
 @section Scripts {
     <script type="text/javascript">
+        var currentUserName = "@User.Identity.Name";
+
         var pendingUpdates = {};
         $(document).ready(function () {
 

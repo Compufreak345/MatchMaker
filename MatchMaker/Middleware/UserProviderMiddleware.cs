@@ -25,22 +25,17 @@ namespace MatchMaker.Middleware
         {
             if (context.User != null)
             {
-                var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userId != null)
+                await userProvider.SetUserByHttpContextAsync(context, userRepository);
+
+                if(userProvider.DbUser == null && context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value != null)
                 {
-                    var user = await userRepository.GetUserAsync(Guid.Parse(userId));
-                    if (user == null)
+                    context.Response.Clear();
+                    foreach (var cookie in context.Request.Cookies)
                     {
-                        await signInManager.SignOutAsync();
-                        context.Response.Clear();
-                        foreach (var cookie in context.Request.Cookies)
-                        {
-                            context.Response.Cookies.Delete(cookie.Key);
-                        }
-                        context.Response.Redirect("/Identity/Account/Login");
-                        return;
+                        context.Response.Cookies.Delete(cookie.Key);
                     }
-                    userProvider.DbUser = user;
+                    context.Response.Redirect("/Identity/Account/Login");
+                    await signInManager.SignOutAsync();
                 }
             }
 
