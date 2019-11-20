@@ -22,6 +22,7 @@ using MatchMaker.Middleware;
 using MatchMaker.Repositories;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.DataProtection;
+using MatchMaker.Hubs;
 
 namespace MatchMaker
 {
@@ -53,6 +54,7 @@ namespace MatchMaker
                 connectionString = builder.ToString();
             }
 
+            services.AddSignalR();
             services.AddDbContext<MmDbContext>(options =>
                 options.UseSqlite(
                     connectionString));
@@ -76,7 +78,7 @@ namespace MatchMaker
             services.AddScoped<UserProvider>();
             services.AddTransient<IEmailSender, MmEmailSender>();
             services.Configure<Email>(this.Configuration.GetSection("Email"));
-
+            services.AddSingleton<VoteCache>();
 
             services.AddRazorPages();
 
@@ -126,6 +128,8 @@ namespace MatchMaker
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
+                endpoints.MapHub<NotificationHub>("/notificationHub");
+
             });
         }
     }
