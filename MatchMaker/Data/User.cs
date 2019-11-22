@@ -24,7 +24,7 @@ namespace MatchMaker.Data
             if (value != null)
             {
                 this.receivedRankings = value;
-                if (this.receivedRankings.Count(c => c.VotingPlayer.IsTrusted) > 2)
+                if (this.receivedRankings.Count(c => c.VotingPlayer.IsTrusted) > 3)
                 {
                     this.IsTrusted = true;
                 }
